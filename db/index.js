@@ -9,7 +9,7 @@ async function createUser({ username, password, name, location }) {
     const {
       rows: [user],
     } = await client.query(
-      `
+      /*sql*/ `
       INSERT INTO users(username, password, name, location)
       VALUES ($1, $2, $3, $4)
       ON CONFLICT (username) DO NOTHING
@@ -38,7 +38,7 @@ async function updateUser(id, fields = {}) {
     const {
       rows: [user],
     } = await client.query(
-      `
+      /*sql*/ `
         UPDATE users
         SET ${setString}
         WHERE id = $1
@@ -56,7 +56,7 @@ async function updateUser(id, fields = {}) {
 async function getAllUsers() {
   try {
     const { rows } = await client.query(
-      "SELECT id, username, name, location, active FROM users;"
+      /*sql*/ `SELECT id, username, name, location, active FROM users;`
     );
 
     return rows;
@@ -70,7 +70,7 @@ async function getUserById(userId) {
     const {
       rows: [user],
     } = await client.query(
-      `
+      /*sql*/ `
     SELECT * FROM users 
     WHERE id = $1
     `,
@@ -97,7 +97,7 @@ async function createPost({ authorId, title, content, tags = [] }) {
     const {
       rows: [post],
     } = await client.query(
-      `
+      /*sql*/ `
       INSERT INTO posts("authorId", title, content)
       VALUES ($1, $2, $3)
       RETURNING *;
@@ -125,7 +125,7 @@ async function updatePost(id, fields = {}) {
     if (setString.length > 0) {
       const values = [id].concat(...Object.values(fields));
       await client.query(
-        `
+        /*sql*/ `
         UPDATE posts
         SET ${setString}
         WHERE id = $1
@@ -143,7 +143,7 @@ async function updatePost(id, fields = {}) {
     const tagListIdString = tagList.map((tag) => `${tag.id}`).join(", ");
 
     await client.query(
-      `
+      /*sql*/ `
       DELETE FROM post_tags
       WHERE "tagId"
       NOT IN (${tagListIdString})
@@ -162,7 +162,7 @@ async function updatePost(id, fields = {}) {
 
 async function getAllPosts() {
   try {
-    const { rows: postIds } = await client.query(`
+    const { rows: postIds } = await client.query(/*sql*/ `
     SELECT id 
     FROM posts
     `);
@@ -180,7 +180,7 @@ async function getAllPosts() {
 async function getPostsByUser(userId) {
   try {
     const { rows: postIds } = await client.query(
-      `
+      /*sql*/ `
       SELECT id 
       FROM posts
       WHERE "authorId" = $1
@@ -203,7 +203,7 @@ async function getPostById(postId) {
     const {
       rows: [post],
     } = await client.query(
-      `
+      /*sql*/ `
       SELECT * 
       FROM posts 
       WHERE id=$1
@@ -212,7 +212,7 @@ async function getPostById(postId) {
     );
 
     const { rows: tags } = await client.query(
-      `
+      /*sql*/ `
       SELECT tags.*
       FROM tags
       JOIN post_tags ON tags.id=post_tags."tagId"
@@ -224,7 +224,7 @@ async function getPostById(postId) {
     const {
       rows: [author],
     } = await client.query(
-      `
+      /*sql*/ `
       SELECT id, username, name, location
       FROM users
       WHERE id=$1
@@ -255,7 +255,7 @@ async function createTags(tagList) {
 
   try {
     await client.query(
-      `
+      /*sql*/ `
       INSERT INTO tags(name)
       VALUES (${insertValues})
       ON CONFLICT (name) DO NOTHING;
@@ -264,7 +264,7 @@ async function createTags(tagList) {
     );
 
     const { rows } = await client.query(
-      `
+      /*sql*/ `
       SELECT * FROM tags
       WHERE name
       IN (${selectValues})
@@ -281,7 +281,7 @@ async function createTags(tagList) {
 async function createPostTag(postId, tagId) {
   try {
     await client.query(
-      `
+      /*sql*/ `
       INSERT INTO post_tags("postId", "tagId")
       VALUES ($1, $2)
       ON CONFLICT ("postId", "tagId") DO NOTHING;
@@ -311,7 +311,7 @@ async function addTagsToPost(postId, tagList = []) {
 async function getPostsByTagName(tagName) {
   try {
     const { rows: postIds } = await client.query(
-      `
+      /*sql*/ `
       SELECT posts.id
       FROM posts
       JOIN post_tags ON posts.id=post_tags."postId"
@@ -327,6 +327,16 @@ async function getPostsByTagName(tagName) {
   }
 }
 
+async function getAllTags() {
+  try {
+    const { rows } = await client.query(/*sql*/ `SELECT * FROM tags;`);
+
+    return rows;
+  } catch (error) {
+    throw error;
+  }
+}
+
 module.exports = {
   client,
   createUser,
@@ -335,6 +345,7 @@ module.exports = {
   updatePost,
   getAllUsers,
   getAllPosts,
+  getAllTags,
   getPostsByUser,
   getUserById,
   getPostsByTagName,
