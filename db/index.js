@@ -321,7 +321,7 @@ async function addTagsToPost(postId, tagList = []) {
 
     await Promise.all(createPostTagPromises);
     const post = await getPostById(postId);
-    console.log("My Post with tags?", post);
+
     return post;
   } catch (error) {
     throw error;
@@ -367,7 +367,9 @@ module.exports = {
   getAllUsers,
   getAllPosts,
   getAllTags,
+  getPostById,
   getPostsByUser,
+  getPostsByTagName,
   getUserById,
   getPostsByTagName,
 };
