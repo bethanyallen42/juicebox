@@ -10,7 +10,7 @@ postsRouter.use((req, res, next) => {
 
 postsRouter.get("/", async (req, res) => {
   const posts = await getAllPosts();
-  res.send({ posts: posts });
+  res.send({ posts });
 });
 
 postsRouter.post("/", requireUser, async (req, res, next) => {
@@ -80,4 +80,28 @@ postsRouter.patch("/:postId", requireUser, async (req, res, next) => {
   }
 });
 
+postsRouter.delete("/:postId", requireUser, async (req, rex, next) => {
+  try {
+    const post = await getPostById(req.params.postId);
+    if (post && post.author.id === req.user.id) {
+      const updatedPost = await updatePost(post.id, { active: false });
+
+      res.send({ post: updatedPost });
+    } else {
+      next(
+        post
+          ? {
+              name: "UnauthorizedUserError",
+              message: "You cannot delete a post that is not yours",
+            }
+          : {
+              name: "PostNotFoundError",
+              message: "That post does not exist",
+            }
+      );
+    }
+  } catch ({ name, message }) {
+    next({ name, message });
+  }
+});
 module.exports = postsRouter;
