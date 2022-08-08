@@ -16,9 +16,20 @@ tagsRouter.get("/:tagName/posts", async (req, res, next) => {
   const { tagName } = req.params;
 
   try {
-    const tagPosts = await getPostsByTagName(tagName);
-    if (tagPosts.length > 0) {
-      res.send({ posts: tagPosts });
+    const allPosts = await getPostsByTagName(tagName);
+    const posts = allPosts.filter((post) => {
+      if (post.active) {
+        return true;
+      }
+
+      if (req.user && post.author.id === req.user.id) {
+        return true;
+      }
+
+      return false;
+    });
+    if (posts.length > 0) {
+      res.send({ posts });
     } else {
       next({
         name: "NoPostsWithThisTagFound",

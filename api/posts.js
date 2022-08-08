@@ -8,9 +8,38 @@ postsRouter.use((req, res, next) => {
   next();
 });
 
-postsRouter.get("/", async (req, res) => {
-  const posts = await getAllPosts();
-  res.send({ posts });
+// postsRouter.get("/", async (req, res) => {
+//   const posts = await getAllPosts();
+//   res.send({ posts });
+// });
+
+postsRouter.get("/", async (req, res, next) => {
+  try {
+    const allPosts = await getAllPosts();
+
+    const posts = allPosts.filter((post) => {
+      if (post.active) {
+        return true;
+      }
+
+      if (req.user && post.author.id === req.user.id) {
+        return true;
+      }
+
+      return false;
+    });
+
+    if (posts.length > 0) {
+      res.send({ posts });
+    } else {
+      next({
+        name: "NoPostsFound",
+        message: "There are no posts",
+      });
+    }
+  } catch ({ name, message }) {
+    next({ name, message });
+  }
 });
 
 postsRouter.post("/", requireUser, async (req, res, next) => {
