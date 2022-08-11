@@ -57,10 +57,10 @@ postsRouter.post("/", requireUser, async (req, res, next) => {
     postData.content = content;
     postData.authorId = user.id;
 
-    const newPost = await createPost(postData);
+    const post = await createPost(postData);
 
-    if (newPost) {
-      res.send({ newPost });
+    if (post) {
+      res.send({ post });
     } else {
       next({
         name: "UnableToCreatePost",
@@ -109,7 +109,7 @@ postsRouter.patch("/:postId", requireUser, async (req, res, next) => {
   }
 });
 
-postsRouter.delete("/:postId", requireUser, async (req, rex, next) => {
+postsRouter.delete("/:postId", requireUser, async (req, res, next) => {
   try {
     const post = await getPostById(req.params.postId);
     if (post && post.author.id === req.user.id) {
